@@ -1,0 +1,185 @@
+openapi: 3.0.3
+info:
+  title: Artifan API - Auth Module
+  version: 1.0.0
+  description: API de autenticación para usuarios (clientes o artistas)
+
+servers:
+  - url: https://artifan.victorcastro.io
+    description: API principal
+
+paths:
+  /api/register:
+    post:
+      summary: Registro de usuario
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthRegisterRequest'
+      responses:
+        '200':
+          description: OTP enviado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OTPDeliveryResponse'
+
+  /api/register/verify:
+    post:
+      summary: Verificar OTP del registro
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OTPVerifyRequest'
+      responses:
+        '200':
+          description: Registro y verificación exitosos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '400':
+          description: Código inválido o expirado
+
+  /api/login:
+    post:
+      summary: Iniciar sesión
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthLoginRequest'
+      responses:
+        '200':
+          description: Login exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '401':
+          description: Credenciales incorrectas
+
+  /api/me:
+    get:
+      summary: Obtener usuario autenticado
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Usuario autenticado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: No autenticado
+
+  /api/logout:
+    post:
+      summary: Cerrar sesión
+      tags: [Auth]
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Sesión cerrada exitosamente
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+
+  schemas:
+    AuthRegisterRequest:
+      type: object
+      required: [country_prefix, phone, password, name, city]
+      properties:
+        country_prefix:
+          type: string
+          example: "+51"
+        phone:
+          type: string
+          example: "999999999"
+        password:
+          type: string
+          example: "secret123"
+        name:
+          type: string
+          example: "Victor Hugo"
+        city:
+          type: string
+          example: "Arequipa"
+
+    OTPDeliveryResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "OTP enviado exitosamente"
+
+    OTPVerifyRequest:
+      type: object
+      required: [phone, otp_code]
+      properties:
+        phone:
+          type: string
+          example: "999999999"
+        otp_code:
+          type: string
+          example: "123456"
+
+    AuthLoginRequest:
+      type: object
+      required: [country_prefix, phone, password]
+      properties:
+        country_prefix:
+          type: string
+          example: "+51"
+        phone:
+          type: string
+          example: "999999999"
+        password:
+          type: string
+          example: "secret123"
+
+    AuthTokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          example: "1|abc123xyz..."
+        user:
+          $ref: '#/components/schemas/UserResponse'
+
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Victor Hugo"
+        phone:
+          type: string
+          example: "999999999"
+        city:
+          type: string
+          example: "Arequipa"
+        country:
+          type: string
+          example: "Perú"
+        created_at:
+          type: string
+          format: date-time
