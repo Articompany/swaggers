@@ -1,0 +1,199 @@
+openapi: 3.0.3
+info:
+  title: Artifan API - Profile Module
+  version: 1.0.0
+  description: API de autenticación para usuarios (clientes o artistas)
+
+servers:
+  - url: https://artifan.victorcastro.io
+    description: API principal
+
+paths:
+  /api/profiles:
+    post:
+      summary: Crear perfil artístico
+      tags: [Profiles]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProfileRequest'
+      responses:
+        '201':
+          description: Perfil creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+
+    get:
+      summary: Obtener mis perfiles artísticos
+      tags: [Profiles]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Lista de perfiles del usuario autenticado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProfileResponse'
+
+  /api/profiles/{slug}:
+    get:
+      summary: Ver perfil artístico público por slug
+      tags: [Profiles]
+      parameters:
+        - name: slug
+          in: path
+          required: true
+          description: Slug único del perfil
+          schema:
+            type: string
+            example: "payasos-del-sur"
+      responses:
+        '200':
+          description: Perfil encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfilePublicResponse'
+        '404':
+          description: Perfil no encontrado
+
+  /api/profiles/{id}:
+    patch:
+      summary: Editar perfil artístico (solo dueño)
+      tags: [Profiles]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            example: 42
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Perfil actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProfileResponse'
+
+    delete:
+      summary: Eliminar perfil artístico (solo dueño)
+      tags: [Profiles]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Eliminado correctamente
+          
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+  schemas:
+    CreateProfileRequest:
+      type: object
+      required: [name, type, description]
+      properties:
+        name:
+          type: string
+          example: "Payasos del Sur"
+        type:
+          type: string
+          enum: [individual, group]
+          example: "group"
+        description:
+          type: string
+          example: "Somos un grupo de animadores con 10 años de experiencia"
+        photo_url:
+          type: string
+          format: uri
+          example: "https://cdn.artifan.com/profiles/123.jpg"
+
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        photo_url:
+          type: string
+          format: uri
+
+    ProfileResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 42
+        name:
+          type: string
+          example: "Payasos del Sur"
+        type:
+          type: string
+          example: "group"
+        slug:
+          type: string
+          example: "payasos-del-sur"
+        description:
+          type: string
+        photo_url:
+          type: string
+          format: uri
+        created_at:
+          type: string
+          format: date-time
+
+    ProfilePublicResponse:
+      allOf:
+        - $ref: '#/components/schemas/ProfileResponse'
+        - type: object
+          properties:
+            city:
+              type: string
+              example: "Arequipa"
+            shows:
+              type: array
+              items:
+                $ref: '#/components/schemas/ShowSummary'
+              
+    ShowSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        title:
+          type: string
+          example: "Show de Frozen"
+        description:
+          type: string
+          example: "Un espectáculo temático para niños"
+        image_url:
+          type: string
+          format: uri
