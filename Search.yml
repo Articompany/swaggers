@@ -1,0 +1,130 @@
+openapi: 3.0.3
+info:
+  title: Artifan API - Search Module
+  version: 1.0.0
+  description: API de autenticación para usuarios (clientes o artistas)
+
+servers:
+  - url: https://artifan.victorcastro.io
+    description: API principal
+
+paths:
+  /api/shows/search:
+    get:
+      summary: Buscar shows por tipo, nombre o descripción
+      tags: [Search]
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Palabra clave de búsqueda (ej. nombre, descripción o artista)
+          schema:
+            type: string
+            example: "payaso"
+        - name: city
+          in: query
+          required: true
+          description: Ciudad del cliente
+          schema:
+            type: string
+            example: "Arequipa"
+      responses:
+        '200':
+          description: Resultados de búsqueda de shows
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShowResponse'
+
+  /api/shows/popular:
+    get:
+      summary: Listar shows populares o destacados
+      tags: [Search]
+      parameters:
+        - name: city
+          in: query
+          required: true
+          description: Ciudad para filtrar los shows populares
+          schema:
+            type: string
+            example: "Arequipa"
+      responses:
+        '200':
+          description: Lista de shows destacados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShowResponse'
+
+  /api/cities:
+    get:
+      summary: Listar ciudades disponibles
+      tags: [Search]
+      responses:
+        '200':
+          description: Lista de ciudades disponibles para búsqueda y registro
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CityResponse'
+          
+components:
+  schemas:
+    ShowResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        profile_id:
+          type: integer
+          example: 42
+        title:
+          type: string
+          example: "Show de Frozen"
+        description:
+          type: string
+          example: "Espectáculo infantil con animadores disfrazados"
+        phone_1:
+          type: string
+          example: "999999999"
+        phone_2:
+          type: string
+          example: "987654321"
+        website_url:
+          type: string
+          format: uri
+          example: "https://frozenarequipa.artifan.com"
+        facebook_url:
+          type: string
+          format: uri
+          example: "https://facebook.com/payasosdelnorte"
+        instagram_url:
+          type: string
+          format: uri
+          example: "https://instagram.com/payasosdelnorte"
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+            example: "https://cdn.artifan.com/shows/show123.jpg"
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-07-29T12:00:00Z"
+    CityResponse:
+      type: object
+      properties:
+        code:
+          type: string
+          example: "arequipa"
+        name:
+          type: string
+          example: "Arequipa"
