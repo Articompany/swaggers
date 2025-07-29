@@ -1,0 +1,72 @@
+openapi: 3.0.3
+info:
+  title: Artifan API - Media Module
+  version: 1.0.0
+  description: API de autenticación para usuarios (clientes o artistas)
+
+servers:
+  - url: https://artifan.victorcastro.io
+    description: API principal
+
+paths:
+  /api/media/upload:
+    post:
+      summary: Subir imagen asociada a perfil o show
+      tags: [Media]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: Imagen subida exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MediaUploadResponse'
+        '400':
+          description: Imagen inválida
+
+  /media/{filename}:
+    get:
+      summary: Acceder a imagen pública
+      tags: [Media]
+      parameters:
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "uploads/show123.jpg"
+      responses:
+        '200':
+          description: Imagen encontrada
+        '404':
+          description: Imagen no encontrada
+          
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+
+  schemas:
+    MediaUploadResponse:
+      type: object
+      properties:
+        url:
+          type: string
+          format: uri
+          example: "https://cdn.artifan.com/uploads/foto123.jpg"
+        filename:
+          type: string
+          example: "foto123.jpg"
