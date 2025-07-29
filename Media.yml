@@ -52,6 +52,28 @@ paths:
         '404':
           description: Imagen no encontrada
           
+  /api/media/{id}:
+    delete:
+      summary: Eliminar imagen subida por el usuario
+      tags: [Media]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID de la imagen a eliminar
+          schema:
+            type: integer
+            example: 72
+      responses:
+        '204':
+          description: Imagen eliminada correctamente
+        '403':
+          description: No autorizado (la imagen no pertenece al usuario)
+        '404':
+          description: Imagen no encontrada
+          
 components:
   securitySchemes:
     bearerAuth:
