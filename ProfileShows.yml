@@ -1,0 +1,250 @@
+openapi: 3.0.3
+info:
+  title: Artifan API - Auth Module
+  version: 1.0.0
+  description: API de autenticación para usuarios (clientes o artistas)
+
+servers:
+  - url: https://artifan.victorcastro.io
+    description: API principal
+
+paths:
+  /api/profiles/{id}/shows:
+    post:
+      summary: Crear show en perfil artístico
+      tags: [Shows]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del perfil artístico
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateShowRequest'
+      responses:
+        '201':
+          description: Show creado exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShowResponse'
+
+    get:
+      summary: Listar shows del perfil
+      tags: [Shows]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+          description: ID del perfil artístico
+      responses:
+        '200':
+          description: Lista de shows del perfil
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShowResponse'
+
+  /api/shows/{id}:
+    get:
+      summary: Ver detalle de un show
+      tags: [Shows]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Show encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShowResponse'
+        '404':
+          description: Show no encontrado
+
+    patch:
+      summary: Editar show (solo dueño del perfil)
+      tags: [Shows]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateShowRequest'
+      responses:
+        '200':
+          description: Show actualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShowResponse'
+
+    delete:
+      summary: Eliminar show
+      tags: [Shows]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Eliminado correctamente
+
+  /api/shows/search:
+    get:
+      summary: Buscar shows públicos
+      tags: [Shows]
+      parameters:
+        - name: query
+          in: query
+          required: false
+          description: Término de búsqueda (nombre, descripción o artista)
+          schema:
+            type: string
+            example: "payaso"
+        - name: city
+          in: query
+          required: true
+          description: Ciudad del cliente que realiza la búsqueda
+          schema:
+            type: string
+            example: "Arequipa"
+      responses:
+        '200':
+          description: Resultados de búsqueda
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShowResponse'
+          
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: Token
+
+  schemas:
+    CreateShowRequest:
+      type: object
+      required: [title, description, phone_1]
+      properties:
+        title:
+          type: string
+          example: "Show Frozen con Anna y Elsa"
+        description:
+          type: string
+          example: "Espectáculo infantil con música, disfraces y coreografía."
+        phone_1:
+          type: string
+          example: "999999999"
+        phone_2:
+          type: string
+          example: "987654321"
+        website_url:
+          type: string
+          format: uri
+          example: "https://frozenarequipa.artifan.com"
+        facebook_url:
+          type: string
+          format: uri
+        instagram_url:
+          type: string
+          format: uri
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+            example: "https://cdn.artifan.com/shows/frozen1.jpg"
+
+    UpdateShowRequest:
+      type: object
+      properties:
+        title:
+          type: string
+        description:
+          type: string
+        phone_1:
+          type: string
+        phone_2:
+          type: string
+        website_url:
+          type: string
+          format: uri
+        facebook_url:
+          type: string
+          format: uri
+        instagram_url:
+          type: string
+          format: uri
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+
+    ShowResponse:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 101
+        profile_id:
+          type: integer
+          example: 42
+        title:
+          type: string
+          example: "Show de Frozen"
+        description:
+          type: string
+          example: "Espectáculo infantil con animadores disfrazados"
+        phone_1:
+          type: string
+        phone_2:
+          type: string
+        website_url:
+          type: string
+          format: uri
+        facebook_url:
+          type: string
+          format: uri
+        instagram_url:
+          type: string
+          format: uri
+        photos:
+          type: array
+          items:
+            type: string
+            format: uri
+        created_at:
+          type: string
+          format: date-time
