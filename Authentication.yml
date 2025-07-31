@@ -1,185 +1,372 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
-  title: Artifan API - Auth Module
-  version: 1.0.0
-  description: API de autenticación para usuarios (clientes o artistas)
-
+  title: Artifan API - Authentication
+  version: 1.1.0
+  description: 'API de autenticación para usuarios (clientes o artistas)'
 servers:
   - url: https://artifan.victorcastro.io
     description: API principal
-
 paths:
-  /api/register:
+  /api/login:
+    parameters: []
     post:
-      summary: Registro de usuario
-      tags: [Auth]
+      summary: Login
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Usuario autenticado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "2|ODCQAyBU5VWPMqntEE5qTJW91JEUnk5KHzAnOIGD2e3b0fc0"
+        '422':
+          description: Error de validación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: El número de celular es obligatorio
+                  error:
+                    type: string
+                    example: ValidationException
+                  errors:
+                    type: object
+                    additionalProperties:
+                      type: array
+                      items:
+                        type: string
+                    example:
+                      mobile_number:
+                        - El número de celular es obligatorio
+        
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthRegisterRequest'
+              type: object
+              properties:
+                mobile_number:
+                  type: string
+                  example: "928218253"
+                mobile_prefix:
+                  type: string
+                  example: "+51"
+                password:
+                  type: string
+                  example: "secret"
+  /api/register:
+    parameters: []
+    post:
+      summary: Register
+      parameters: []
+      responses:
+        '200':
+          description: Registro exitoso, OTP enviado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: 4|2d9TAADaSDTAKnkhXQsT5YG4Ssb7Ua2rmwZVxirW60c83f31
+                  message:
+                    type: string
+                    example: OTP enviado exitosamente al número 92****253
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstname:
+                  type: string
+                city:
+                  type: string
+                country_id:
+                  type: string
+                mobile_number:
+                  type: string
+                  format: utc-millisec
+                mobile_prefix:
+                  type: string
+                  format: utc-millisec
+                password:
+                  type: string
+  /api/me:
+    parameters: []
+    get:
+      summary: Me
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Datos del usuario autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                    example: 6
+                  firstname:
+                    type: string
+                    example: Victor
+                  lastname:
+                    type: string
+                    nullable: true
+                    example: null
+                  docnum:
+                    type: string
+                    nullable: true
+                    example: null
+                  doctype:
+                    type: string
+                    nullable: true
+                    example: null
+                  mobileE164:
+                    type: string
+                    example: "+51928218253"
+                  mobileE164_verified_at:
+                    type: string
+                    format: date-time
+                    nullable: true
+                    example: null
+                  mobile_number:
+                    type: string
+                    example: "928218253"
+                  mobile_prefix:
+                    type: string
+                    example: "+51"
+                  city:
+                    type: string
+                    example: "Lima"
+                  country_id:
+                    type: string
+                    example: "PER"
+                  created_at:
+                    type: string
+                    format: date-time
+                    example: "2025-07-31T13:55:18+00:00"
+  /api/logout:
+    parameters: []
+    post:
+      summary: Logout
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Sesión cerrada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Sesión cerrada correctamente"
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/mobile/otp/resend:
+    parameters: []
+    post:
+      summary: OTP Re-send
+      parameters: []
       responses:
         '200':
           description: OTP enviado exitosamente
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OTPDeliveryResponse'
-
-  /api/register/verify:
-    post:
-      summary: Verificar OTP del registro
-      tags: [Auth]
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/OTPVerifyRequest'
-      responses:
-        '200':
-          description: Registro y verificación exitosos
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "OTP enviado exitosamente al número 928****253"
+        '422':
+          description: Error al enviar el código de OTP
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthTokenResponse'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Hubo un error al enviar el código de OTP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+  /api/mobile/otp/verify:
+    parameters: []
+    post:
+      summary: OTP Validate
+      parameters: []
+      responses:
+        '200':
+          description: Número verificado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Número verificado correctamente
         '400':
           description: Código inválido o expirado
-
-  /api/login:
-    post:
-      summary: Iniciar sesión
-      tags: [Auth]
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Código inválido o expirado
       requestBody:
-        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthLoginRequest'
-      responses:
-        '200':
-          description: Login exitoso
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthTokenResponse'
-        '401':
-          description: Credenciales incorrectas
-
-  /api/me:
-    get:
-      summary: Obtener usuario autenticado
-      tags: [Auth]
-      security:
-        - bearerAuth: []
-      responses:
-        '200':
-          description: Usuario autenticado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserResponse'
-        '401':
-          description: No autenticado
-
-  /api/logout:
+              type: object
+              properties:
+                otp:
+                  type: string
+                  format: color
+  /api/password/forgot:
+    parameters: []
     post:
-      summary: Cerrar sesión
-      tags: [Auth]
-      security:
-        - bearerAuth: []
+      summary: Password Forgot
+      parameters: []
       responses:
-        '204':
-          description: Sesión cerrada exitosamente
-
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: Token
-
-  schemas:
-    AuthRegisterRequest:
-      type: object
-      required: [country_prefix, phone, password, name, city]
-      properties:
-        country_prefix:
-          type: string
-          example: "+51"
-        phone:
-          type: string
-          example: "999999999"
-        password:
-          type: string
-          example: "secret123"
-        name:
-          type: string
-          example: "Victor Hugo"
-        city:
-          type: string
-          example: "Arequipa"
-
-    OTPDeliveryResponse:
-      type: object
-      properties:
-        message:
-          type: string
-          example: "OTP enviado exitosamente"
-
-    OTPVerifyRequest:
-      type: object
-      required: [phone, otp_code]
-      properties:
-        phone:
-          type: string
-          example: "999999999"
-        otp_code:
-          type: string
-          example: "123456"
-
-    AuthLoginRequest:
-      type: object
-      required: [country_prefix, phone, password]
-      properties:
-        country_prefix:
-          type: string
-          example: "+51"
-        phone:
-          type: string
-          example: "999999999"
-        password:
-          type: string
-          example: "secret123"
-
-    AuthTokenResponse:
-      type: object
-      properties:
-        token:
-          type: string
-          example: "1|abc123xyz..."
-        user:
-          $ref: '#/components/schemas/UserResponse'
-
-    UserResponse:
-      type: object
-      properties:
-        id:
-          type: integer
-          example: 1
-        name:
-          type: string
-          example: "Victor Hugo"
-        phone:
-          type: string
-          example: "999999999"
-        city:
-          type: string
-          example: "Arequipa"
-        country:
-          type: string
-          example: "Perú"
-        created_at:
-          type: string
-          format: date-time
+        '200':
+          description: Código de recuperación enviado correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: Se ha enviado un código de recuperación por SMS
+        '422':
+          description: Error al enviar el código de recuperación
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: Error al enviar el código de recuperación
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mobile_prefix:
+                  type: string
+                  example: "+51"
+                mobile_number:
+                  type: string
+                  example: "928218253"
+  /api/password/reset:
+    parameters: []
+    post:
+      summary: Password Reset
+      parameters:
+        - name: Authorization
+          in: header
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Contraseña restablecida correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: La contraseña se ha restablecido correctamente
+        '400':
+          description: Código inválido o expirado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: El código ingresado es inválido o ha expirado
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mobile_prefix:
+                  type: string
+                  format: utc-millisec
+                mobile_number:
+                  type: string
+                  format: utc-millisec
+                otp:
+                  type: string
+                  format: color
+                new_password:
+                  type: string
